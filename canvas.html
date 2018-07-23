@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>canvas</title>
+	<style>
+		html,body{
+			margin:0;
+			padding:0;
+			width:100%;
+			height:100%;
+		}
+		canvas{
+			width:100%;
+			height:100%;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas">您的浏览器太过落后，请更新浏览器</canvas>
+	<script>
+		// canvas 动画函数 
+		window.requestAnimationFrame=window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
+
+		let canvas = document.getElementById("canvas") ;
+		let ctx = canvas.getContext("2d") ;
+		let W = canvas.width = canvas.offsetWidth ;
+		let H = canvas.height = canvas.offsetHeight ;
+		let arr = []
+
+		//圆点构造函数
+		class Circle {
+			constructor (){
+				this.x = Math.random()* W;
+				this.y = Math.random()* H;
+				this.r = Math.random()*10;
+				this._mx = Math.random()*5;
+				this._my = Math.random()*5;
+				this.color = `rgba(${Math.random()*255},${Math.random()*255},${Math.random()*255},${Math.random()})`
+			}
+
+			drawCircle (ctx){
+				ctx.beginPath() ;
+				ctx.arc(this.x,this.y,this.r,0,360) ;
+				ctx.closePath() ;
+				ctx.fillStyle = this.color;
+				ctx.fill()
+			}
+
+			move (W,H){
+				this._mx = (this.x >0 && this.x < W) ? this._mx : (-this._mx );
+				this._my = (this.y >0 && this.y < H) ? this._my : (-this._my ) ;
+				this.x += this._mx / 2 ;
+				this.y += this._my / 2 ;
+			}
+
+			drawLine (ctx,_circle){
+				let d=Math.sqrt(Math.pow(this.x - _circle.x,2) + Math.pow(this.y - _circle.y,2))
+				if(d<100){
+					ctx.beginPath()
+					ctx.moveTo(this.x,this.y)
+					ctx.lineTo(_circle.x,_circle.y)
+					ctx.strokeStyle='rgba(117, 117, 117, 0.5)';
+					ctx.stroke()
+				}
+			}
+		}
+		//鼠标实例
+		class Mouse extends Circle{
+			constructor (x,y){
+				super(x,y)
+			}
+			drawCircle (ctx){
+				ctx.beginPath() ;
+				ctx.arc(this.x,this.y,8,0,360)
+				ctx.closePath()
+				ctx.fillStyle = '#fbb81b66'
+				ctx.fill()
+			}
+		}
+
+		//实例化 鼠标
+		let mouse = new Mouse(0,0)
+		//为每个实例画圆连线
+		let draw = function(){
+			ctx.clearRect(0, 0, W, H);
+			for(let i = 0 ; i < arr.length ; i++){
+				arr[i].move(W,H)
+				arr[i].drawCircle(ctx);	
+				for(let j = i + 1 ; j < arr.length ; j++){
+					arr[i].drawLine(ctx,arr[j])
+				}
+			}	
+			if(mouse.x){
+				for(let i =0 ; i < arr.length ;i++){
+					mouse.drawCircle(ctx)
+					mouse.drawLine(ctx,arr[i])
+				}
+			}
+			requestAnimationFrame(draw)
+		}
+
+		let init = function (num){
+			for(let i = 0 ;i < num ;i++){
+				arr.push(new Circle())
+			}
+			draw()
+		}
+
+		window.onload = function (){
+			init(60)
+		}
+
+		window.onmousemove = function(e){
+			e = e || window.event
+			mouse.x = e.clientX ;
+			mouse.y = e.clientY ;
+		}
+
+		window.onmouseout = function(e){
+			e = e || window.event ;
+			mouse.x = null ;
+			mouse.y = null ;
+		}
+	</script>
+</body>
+</html>
